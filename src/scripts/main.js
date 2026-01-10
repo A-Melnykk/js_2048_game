@@ -3,12 +3,37 @@
 
 const game = new Game();
 
-function renderBoard() {}
+function renderBoard() {
+  const boardContainer = document.querySelector('.grid-container');
+
+  if (!boardContainer) {
+    return;
+  }
+
+  boardContainer.innerHTML = '';
+
+  const board = game.board || [];
+
+  board.forEach((row) => {
+    row.forEach((cellValue) => {
+      const cell = document.createElement('div');
+
+      cell.className = 'grid-cell';
+
+      if (cellValue > 0) {
+        cell.textContent = cellValue;
+        cell.classList.add(`tile-${cellValue}`);
+      }
+
+      boardContainer.appendChild(cell);
+    });
+  });
+}
 
 function renderScore() {
   const scoreElement = document.querySelector('.game-score');
 
-  if (scoreElement) {
+  if (scoreElement && typeof game.getScore === 'function') {
     scoreElement.textContent = game.getScore();
   }
 }
@@ -16,6 +41,10 @@ function renderScore() {
 function renderStatus() {
   const loseMessage = document.querySelector('.message.message-lose');
   const winMessage = document.querySelector('.message.message-win');
+
+  if (!loseMessage || !winMessage) {
+    return;
+  }
 
   if (game.getStatus() === 'lose') {
     loseMessage.classList.remove('hidden');
@@ -58,6 +87,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 const startButton = document.querySelector('.button.start');
+const restartButton = document.querySelector('.button.restart');
 
 if (startButton) {
   startButton.addEventListener('click', () => {
@@ -69,8 +99,6 @@ if (startButton) {
   });
 }
 
-const restartButton = document.querySelector('.button.restart');
-
 if (restartButton) {
   restartButton.addEventListener('click', () => {
     game.restart();
@@ -79,3 +107,7 @@ if (restartButton) {
     renderStatus();
   });
 }
+
+renderBoard();
+renderScore();
+renderStatus();
