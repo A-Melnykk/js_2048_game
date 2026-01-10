@@ -1,61 +1,55 @@
 /* global Game */
 'use strict';
 
-const game = new Game();
+// Створюємо гру та передаємо функції, які будуть викликатися автоматично
+const game = new Game(
+  () => renderScore(),
+  () => renderStatus(),
+);
 
 function renderBoard() {
-  const boardContainer = document.querySelector('.grid-container');
+  const cells = document.querySelectorAll('.field-cell');
+  const boardData = game.getState().flat();
 
-  if (!boardContainer) {
-    return;
-  }
+  cells.forEach((cell, i) => {
+    cell.innerHTML = '';
 
-  boardContainer.innerHTML = '';
+    const val = boardData[i];
 
-  const board = game.board || [];
+    if (val > 0) {
+      const tile = document.createElement('div');
 
-  board.forEach((row) => {
-    row.forEach((cellValue) => {
-      const cell = document.createElement('div');
-
-      cell.className = 'grid-cell';
-
-      if (cellValue > 0) {
-        cell.textContent = cellValue;
-        cell.classList.add(`tile-${cellValue}`);
-      }
-
-      boardContainer.appendChild(cell);
-    });
+      tile.className = `tile tile-${val}`;
+      tile.textContent = val;
+      cell.appendChild(tile);
+    }
   });
 }
 
 function renderScore() {
-  const scoreElement = document.querySelector('.game-score');
+  const el = document.querySelector('.game-score');
 
-  if (scoreElement && typeof game.getScore === 'function') {
-    scoreElement.textContent = game.getScore();
+  if (el) {
+    el.textContent = game.getScore();
   }
 }
 
 function renderStatus() {
-  const loseMessage = document.querySelector('.message.message-lose');
-  const winMessage = document.querySelector('.message.message-win');
+  const lose = document.querySelector('.message-lose');
+  const win = document.querySelector('.message-win');
+  const start = document.querySelector('.message-start');
+  const currentGameStatus = game.getStatus();
 
-  if (!loseMessage || !winMessage) {
-    return;
+  if (lose) {
+    lose.classList.toggle('hidden', currentGameStatus !== 'lose');
   }
 
-  if (game.getStatus() === 'lose') {
-    loseMessage.classList.remove('hidden');
-  } else {
-    loseMessage.classList.add('hidden');
+  if (win) {
+    win.classList.toggle('hidden', currentGameStatus !== 'win');
   }
 
-  if (game.getStatus() === 'win') {
-    winMessage.classList.remove('hidden');
-  } else {
-    winMessage.classList.add('hidden');
+  if (start) {
+    start.classList.toggle('hidden', currentGameStatus !== 'idle');
   }
 }
 
@@ -64,50 +58,36 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  switch (e.key) {
-    case 'ArrowLeft':
-      game.moveLeft();
-      break;
-    case 'ArrowRight':
-      game.moveRight();
-      break;
-    case 'ArrowUp':
-      game.moveUp();
-      break;
-    case 'ArrowDown':
-      game.moveDown();
-      break;
-    default:
-      return;
+  if (e.key === 'ArrowUp') {
+    game.moveUp();
+  }
+
+  if (e.key === 'ArrowDown') {
+    game.moveDown();
+  }
+
+  if (e.key === 'ArrowLeft') {
+    game.moveLeft();
+  }
+
+  if (e.key === 'ArrowRight') {
+    game.moveRight();
   }
 
   renderBoard();
-  renderScore();
-  renderStatus();
 });
 
-const startButton = document.querySelector('.button.start');
-const restartButton = document.querySelector('.button.restart');
+document.querySelector('.button.start')?.addEventListener('click', () => {
+  game.start();
+  renderBoard();
+});
 
-if (startButton) {
-  startButton.addEventListener('click', () => {
-    game.restart();
-    game.start();
-    renderBoard();
-    renderScore();
-    renderStatus();
-  });
-}
+document.querySelector('.button.restart')?.addEventListener('click', () => {
+  game.restart();
+  renderBoard();
+});
 
-if (restartButton) {
-  restartButton.addEventListener('click', () => {
-    game.restart();
-    renderBoard();
-    renderScore();
-    renderStatus();
-  });
-}
-
+// Початкове відображення
 renderBoard();
 renderScore();
 renderStatus();
